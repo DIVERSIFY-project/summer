@@ -1,0 +1,52 @@
+- sudo apt-get install postgresql postgresql-contrib
+
+- Install postgis using instructions at: 
+  http://postgis.net/docs/postgis_installation.html
+Notes: 
+1) Depending on your version, 'postgis_tiger_geocoder' might not get installed.  
+To rectify this, use the following commands:
+
+psql -d <dbname> -c "CREATE EXTENSION hstore";
+psql -d <dbname> -c "CREATE EXTENSION fuzzystrmatch";
+psql -d <dbname> -c "CREATE EXTENSION postgis_tiger_geocoder";
+
+2) Add the following environment variables to enable raster files:
+export POSTGIS_ENABLE_OUTDB_RASTERS=1
+export POSTGIS_GDAL_ENABLED_DRIVERS=ENABLE_ALL
+export POSTGIS_GDAL_ENABLED_DRIVERS="GTiff PNG JPEG GIF XYZ"
+
+Not setting these, will cause them to be turned off.
+
+
+- Run 'make check' to ensure that postgis has been installed correctly
+
+- create a database called 'osm'
+
+- Install osm2pgsql using instructions at:
+http://wiki.openstreetmap.org/wiki/Osm2pgsql
+On debian wheezy, this involves:
+
+sudo apt-get install build-essential libxml2-dev libgeos++-dev libpq-dev 
+libbz2-dev libproj-dev libtool automake git
+
+sudo apt-get install libprotobuf-c0-dev protobuf-c-compiler
+
+sudo apt-get install osm2pgsql
+
+
+- Insert <city>.osm into the database that you created, using the command:
+osm2pgsql --create --database osm --latlong --hstore-all --slim 
+/path/to/maps/<city>.osm
+
+- Check if the data has been inserted correctly:
+
+>psql osm
+osm=# \d planet_osm_line;
+
+This should return a description of the table
+
+osm=# select count(*) from planet_osm_line where ((tags->'highway') = 
+'secondary');
+
+This should return a count of roads that are major roads, depending on the city 
+map that you loaded

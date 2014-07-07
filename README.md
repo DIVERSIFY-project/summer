@@ -1,4 +1,4 @@
 summer
 ======
 
-Smart Urban Maps MadE Reliable
+Some Urban Maps Made Reliable
