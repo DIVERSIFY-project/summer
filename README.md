@@ -1,7 +1,7 @@
 summer
 ======
 
-Some Urban Maps Made Reliable
+Smart Urban Maps Made Responsive
 
 GitHub projects that are required
 ----------------------------------
