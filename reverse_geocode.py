@@ -1,8 +1,17 @@
-import itertools
+# stdlib imports
+import collections
 import json
-import time
 import urllib2
 import xml.etree.ElementTree as ET
+
+# third-party imports
+import redis
+import rq
+
+# our code imports
+import constants
+
+
 
 curr_lat = 53.34376885732333
 curr_long = -6.240988668839767
@@ -42,14 +51,27 @@ def create_noise_sensor_hash(sensor_file):
     """
     This function reads an XML file created by NoiseTube, finds the appropriate
     streets that the readings pertain to, and creates a hash that can be
-    inserted inside Redis
+    inserted inside Redis. It ignores measurements that have no location 
+    associated with them. If the same lat/long combination have multiple 
+    measurements, the last one is taken
 
     Args: Absolute path to the XML file containing sensor data
     Return: Hash containing Way-id and sensor value
     """
+    sensor_hash = collections.defaultdict(int)
     for event, elem in ET.iterparse(sensor_file):
         if elem.tag == "measurement":
+            loudness = elem.get('loudness')
+            timestamp = elem.get('timeStamp')
+            geoloc = elem.get('location')
+            if geoloc is None:
+                continue
+            lat,long = geoloc.lstrip("geo:").split(",")
+            relevant_streets = get_relevant_streets(lat, long)
+            for street in relevant_streets:
+                sensor_hash[street] = loudness
 
+    return sensor_hash
 
 
     
