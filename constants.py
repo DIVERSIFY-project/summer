@@ -5,7 +5,8 @@ sensors, reading and writing from Redis, logging, etc.
 
 REDIS_CONSTANTS = {
     'REDIS_URL' = 'localhost',
-    'REDIS_HASHES' = 'sensors'
+    'HASH_NAME' = 'sensor_data',
+    'KEY' = 'dublin_ways'
 }
 
 def getRedisConstants(constant):
@@ -44,6 +45,23 @@ def getSensorSource(constant):
     sensor name is not found, returns False.
     """
     return SENSOR_CONSTANTS.get(constant, False)
+
+SENSOR_PARSERS = {
+        'NOISETUBE' : 'create_noise_sensor_hash'
+        }
+def getSensorParser(constant):
+    """
+    Returns the name of the function that can parse that particular sensor
+    data. Every sensor might dump data in a different format, and might need a
+    different parser. Also, we won't know which sensors are available for a
+    particular city. Hence, we have to get the name of the parser function
+    dynamically. 
+
+    :param constant: Name of the sensor
+    :type constant: string
+    :returns: string. False, if constant not found
+    """
+    return SENSOR_PARSERS.get(constant, False)
 
 
 LOGGING_CONSTANTS = {
