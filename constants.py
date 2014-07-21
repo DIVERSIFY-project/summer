@@ -4,9 +4,9 @@ sensors, reading and writing from Redis, logging, etc.
 """
 
 REDIS_CONSTANTS = {
-    'REDIS_URL' = 'localhost',
-    'HASH_NAME' = 'sensor_data',
-    'KEY' = 'dublin_ways'
+        'REDIS_URL' : 'localhost',
+        'HASH_NAME' : 'sensor_data',
+        'KEY' : 'dublin_ways'
 }
 
 def getRedisConstants(constant):
@@ -14,7 +14,7 @@ def getRedisConstants(constant):
 
 # Defines (in metres) how far the reading for this sensor should be propagated
 SENSOR_PROPAGATION = {
-        'NOISETUBE' = 50
+        'NOISETUBE' : 50
 }
 
 def getSensorPropagation(constant):
@@ -27,7 +27,7 @@ def getSensorPropagation(constant):
     return SENSOR_PROPAGATION.get(constant, 100)
 
 SENSOR_CONSTANTS = {
-        'NOISETUBE' = '/home/vivek/git/summer/sensor_readings/noise'
+        'NOISETUBE' : '/home/vivek/git/summer/sensor_readings/noise'
 }
 def getSensorNames():
     """
@@ -65,9 +65,9 @@ def getSensorParser(constant):
 
 
 LOGGING_CONSTANTS = {
-        'LOGFILE' = '/tmp/summer.log',
-        'MAX_LOG_SIZE' = 1048576, # 1 MEG
-        'BACKUP_COUNT' = 5
+        'LOGFILE' : '/tmp/summer.log',
+        'MAX_LOG_SIZE' : 1048576, # 1 MEG
+        'BACKUP_COUNT' : 5
 }
 def getLoggingConstants(constant):
     """

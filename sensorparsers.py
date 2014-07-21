@@ -1,5 +1,8 @@
 # std libs
+import collections
+import ConfigParser
 import json
+import logging
 import urllib2
 import xml.etree.ElementTree as ET
 
@@ -10,7 +13,7 @@ import constants
 import summerlogger
 import utils
 
-def create_noise_sensor_hash():
+def create_noise_sensor_hash(sensor_name, sensor_file, sensor_propagation):
     """
     This function reads an XML file created by NoiseTube, finds the appropriate
     streets that the readings pertain to, and creates a hash that can be
@@ -21,9 +24,7 @@ def create_noise_sensor_hash():
     :returns: Hash containing Way-id and sensor value and timestamp
     """
     logger = logging.getLogger('summer.reverse_geocode.create_noise_sensor_hash')
-    SENSOR = 'NOISETUBE'
-    logger.info("Parsing sensor data for: %s"%(SENSOR,))
-    sensor_file = constants.getSensorSource(SENSOR)
+    logger.info("Parsing sensor data for: %s"%(sensor_name,))
     logger.debug("Sensor data being grabbed from:%s"%(sensor_file))
     sensor_hash = collections.defaultdict(int)
     for event, elem in ET.iterparse(sensor_file):
@@ -34,12 +35,11 @@ def create_noise_sensor_hash():
             if geoloc is None:
                 continue
             lat,long = geoloc.lstrip("geo:").split(",")
-            relevant_streets = utils.get_relevant_streets(lat, long, SENSOR)
+            relevant_streets = utils.get_relevant_streets(lat, long, sensor_propagation)
             for street in relevant_streets:
-                sensor_hash[street] = {"value":loudness, "timestamp": 
-                        timestamp}
-    logger.info("Number of streets affected by sensor update: 
-            %d"%(len(sensor_hash))
+                sensor_hash[street] = {sensor_name +"_value":loudness, \
+                        sensor_name + "_timestamp": timestamp}
+    logger.info("Number of streets affected by sensor update: %d"%(len(sensor_hash)))
     return sensor_hash
 
 
