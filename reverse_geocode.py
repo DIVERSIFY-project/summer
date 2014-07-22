@@ -87,4 +87,5 @@ def update_streets_with_sensor_data(city_config_file):
 
        
 if __name__ == '__main__':
-    update_streets_with_sensor_data('/home/vivek/git/diversify-summer/dublin.config')
+    import os
+    update_streets_with_sensor_data(os.path.abspath('dublin.config'))

@@ -3,6 +3,7 @@ import collections
 import ConfigParser
 import json
 import logging
+import os
 import urllib2
 import xml.etree.ElementTree as ET
 
@@ -25,6 +26,7 @@ def create_noise_sensor_hash(sensor_name, sensor_file, sensor_propagation):
     """
     logger = logging.getLogger('summer.reverse_geocode.create_noise_sensor_hash')
     logger.info("Parsing sensor data for: %s"%(sensor_name,))
+    sensor_file = os.path.abspath(sensor_file)
     logger.debug("Sensor data being grabbed from:%s"%(sensor_file))
     sensor_hash = collections.defaultdict(dict)
     prev_latitude = 0
