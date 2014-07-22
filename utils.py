@@ -1,9 +1,11 @@
 # std libs
 import logging
 import json
+import math
 import urllib2
 
 # third-party
+from decorators import retry
 
 # our libs
 import summerlogger
@@ -32,7 +34,7 @@ def get_relevant_streets(latitude, longitude, propagation_value=None):
 
     full_url = ''.join([prefix_url,lat_url, str(latitude), long_url, str(longitude)])
     logger.debug("Connecting to: %s"%(full_url))
-    geo_response = urllib2.urlopen(full_url)
+    geo_response = urlopen_with_retry(full_url)
     relevant_streets = set()
     if geo_response.code == 200:
         logger.debug("Received reverse geocoding information")
@@ -51,4 +53,53 @@ def get_relevant_streets(latitude, longitude, propagation_value=None):
 
     return relevant_streets
 
+def calc_gps_distance(lat1, long1, lat2, long2):
+    """
+    All calculations need to be done in radians, instead of degrees. Since most 
+    GPS coordinates tend to use degrees, we convert to radians first, and then 
+    use the Haversine formula. The Haversine formula gives the shortest 
+    great-circle distance between any two points, i.e. as-the-crow-flies 
+    distance using a reasonably focussed crow
+
+    WARNING: The calculation is done in Kilometres. But, at the street level,
+    kilometres is not useful. So, we convert to metres and return!
+
+    >>> calc_gps_distance(53.34376885732333,-6.240988668839767,53.34376349, \
+            -6.24099402)
+    0000.6945396560484981
+
+    >>> calc_gps_distance(53.34376885732333,-6.240988668839767,0,0)
+    5959609.740337647
+
+    >>> calc_gps_distance(90,0,0,0)
+    10007543.398
+
+    """
+    radius_of_earth = 6371 # in Kilometres
+
+    delta_latitude = math.radians(lat2 - lat1)
+    delta_longitude = math.radians(long2 - long1)
+    rad_lat1 = math.radians(lat1)
+    rad_lat2 = math.radians(lat2)
+
+    a = math.sin(delta_latitude / 2) * math.sin(delta_latitude / 2) + \
+        math.cos(rad_lat1) * math.cos(rad_lat2) * math.sin(delta_longitude / 2) \
+        * math.sin(delta_longitude / 2)
+
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+
+    distance = radius_of_earth * c
+    distance_in_metres = distance * 1000
+    return distance_in_metres
+
+
+@retry(urllib2.URLError, tries=5, delay=7, backoff=2)
+def urlopen_with_retry(full_url):
+    """
+    This function exists because we're using a free reverse geo-coding service,
+    and it tends to throw us off, if we try too many times. We use an
+    exponential backoff mechanism (7, 14, 28...) to wait a little bit and then
+    try again. The ideal solution is to run our own reverse geocoding service
+    """
+    return urllib2.urlopen(full_url)
 
