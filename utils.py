@@ -1,4 +1,5 @@
 # std libs
+from datetime import datetime
 import logging
 import json
 import math
@@ -103,3 +104,16 @@ def urlopen_with_retry(full_url):
     """
     return urllib2.urlopen(full_url)
 
+def is_date_older(date1_str, date2_str):
+    """
+    Returns true if date1_str is older than date2_str
+
+    :param date1_str: The first date
+    :type date1_str: string
+    :param date2_str: The second date
+    :type date2_str: string
+    :returns: boolean
+    """
+    first_date = datetime.strptime(date1_str, "%Y-%m-%dT%H:%M:%SZ")
+    second_date = datetime.strptime(date2_str, "%Y-%m-%dT%H:%M:%SZ")
+    return first_date <= second_date

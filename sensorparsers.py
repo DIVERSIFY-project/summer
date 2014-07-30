@@ -1,9 +1,15 @@
+"""
+This module contains the parsers for sensor data. When a new sensor is added, a 
+parser must be added to read through the data dumped by the web-service, and 
+create a hash, that can be returned.
+"""
 # std libs
 import collections
 import ConfigParser
 import json
 import logging
 import os
+import time
 import urllib2
 import xml.etree.ElementTree as ET
 
@@ -49,6 +55,8 @@ def create_noise_sensor_hash(sensor_name, sensor_file, sensor_propagation):
                 prev_latitude, prev_longitude = lat, long
                 relevant_streets = utils.get_relevant_streets(lat, long,\
                         sensor_propagation)
+                # sleep for a little while, just to be polite
+                time.sleep(3)
                 for street in relevant_streets:
                     sensor_hash[street].update({sensor_name +"_value":loudness, \
                             sensor_name + "_timestamp": timestamp})

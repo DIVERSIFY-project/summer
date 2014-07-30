@@ -1,6 +1,8 @@
 #import stdlib
 import logging
 import logging.handlers
+import tempfile
+import os
 
 # import our code
 import constants
@@ -11,6 +13,7 @@ BACKUPCOUNT = constants.getLoggingConstants('BACKUPCOUNT')
 
 
 # set up logging to file 
+LOGFILE = ''.join([tempfile.gettempdir(), os.path.sep, LOGFILE])
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%d-%m-%y %H:%M',
@@ -28,6 +31,9 @@ formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
 console.setFormatter(formatter)
 # add the handler to the root logger
 logging.getLogger('').addHandler(console)
+
+# Indicate on console where the app_logger is logging to
+logging.getLogger('').info("Logging to file: %s"%(LOGFILE,))
 
 app_logger = logging.getLogger('summer')
 app_logger.setLevel(logging.DEBUG)

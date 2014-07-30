@@ -66,17 +66,24 @@ def update_streets_with_sensor_data(city_config_file):
             parserlib = importlib.import_module(parser_module)
             sensor_parser = getattr(parserlib, parser_func)
             sensor_file = sensor_config['dirname'] + sensor_config['filename']
-            sensor_propagation = float(sensor_config['propagation'])
+            sensor_propagation = int(sensor_config['propagation'])
             sensor_data = sensor_parser(sensor_name, sensor_file, sensor_propagation)
-#            HASH_NAME = ''.join([city_prefix, '_hash'])
-#            logger.debug("Getting hash called:%s"%(HASH_NAME))
-#            redis_way_hash = collections.defaultdict(str)
-
             logger.debug(sensor_data)
+            # Get the aggregator module and func for this sensor
+            agg_module, agg_func = sensor_config['aggregator'].split('.')
+            agg_lib= importlib.import_module(agg_module)
+            agg_gator = getattr(agg_lib, agg_func)
+            # Iterate through all the streets we found this time
             for street, street_data in sensor_data.items():
                 logger.debug("Adding data for street: %s"%(street))
                 city_way_data.add(street)
                 redis_server.sadd(city_way_set, street)
+                # Get existing data for each street for this sensor
+                historical_street_data = redis_server.hgetall(street)
+                # Send current and historical data to aggregator for statistical
+                # munging
+                street_data = agg_gator(sensor_name, street_data, \
+                        historical_street_data)
                 # Write the hash data back to Redis
                 for key,value in street_data.items():
                     redis_server.hset(street, key,value)
