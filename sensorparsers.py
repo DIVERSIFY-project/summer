@@ -33,33 +33,37 @@ def create_noise_sensor_hash(sensor_name, sensor_file, sensor_propagation):
     logger = logging.getLogger('summer.reverse_geocode.create_noise_sensor_hash')
     logger.info("Parsing sensor data for: %s"%(sensor_name,))
     sensor_file = os.path.abspath(sensor_file)
-    logger.debug("Sensor data being grabbed from:%s"%(sensor_file))
+    logger.info("Sensor data being grabbed from:%s"%(sensor_file))
     sensor_hash = collections.defaultdict(dict)
     prev_latitude = 0
     prev_longitude = 0
-    for event, elem in ET.iterparse(sensor_file):
-        if elem.tag == "measurement":
-            loudness = elem.get('loudness')
-            timestamp = elem.get('timeStamp')
-            geoloc = elem.get('location')
-            if geoloc is None:
-                continue
-            lat,long = geoloc.lstrip("geo:").split(",")
-            if not relevant_noise_measurement(prev_latitude, prev_longitude, \
-                                                lat, long, sensor_propagation):
-                logger.debug("Prev: %s,%s | curr: %s,%s"%(prev_latitude, \
-                        prev_longitude, lat, long))
-                logger.debug("Skipping this measurement")
-                continue
-            else:
-                prev_latitude, prev_longitude = lat, long
-                relevant_streets = utils.get_relevant_streets(lat, long,\
-                        sensor_propagation)
-                # sleep for a little while, just to be polite
-                time.sleep(3)
-                for street in relevant_streets:
-                    sensor_hash[street].update({sensor_name +"_value":loudness, \
+    try:
+            for event, elem in ET.iterparse(sensor_file):
+                if elem.tag == "measurement":
+                    loudness = elem.get('loudness')
+                    timestamp = elem.get('timeStamp')
+                    geoloc = elem.get('location')
+                    if geoloc is None:
+                        continue
+                    lat,long = geoloc.lstrip("geo:").split(",")
+                    if not relevant_noise_measurement(prev_latitude, prev_longitude, \
+                                                        lat, long, sensor_propagation):
+                        logger.debug("Prev: %s,%s | curr: %s,%s"%(prev_latitude, \
+                                prev_longitude, lat, long))
+                        logger.debug("Skipping this measurement")
+                        continue
+                    else:
+                        prev_latitude, prev_longitude = lat, long
+                        relevant_streets = utils.get_relevant_streets(lat, long,\
+                                sensor_propagation)
+                        # sleep for a little while, just to be polite
+                        time.sleep(3)
+                        for street in relevant_streets:
+                            sensor_hash[street].update({sensor_name +"_value":loudness, \
                             sensor_name + "_timestamp": timestamp})
+    except ET.ParseError as pe:
+        logger.warn("Malformed XML. Skipping rest of the file")
+    logger.info("Finished processing %s"%(sensor_file))
     logger.info("Number of streets affected by sensor update: %d"%(len(sensor_hash)))
     return sensor_hash
 
